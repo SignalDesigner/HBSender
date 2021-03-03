@@ -46,22 +46,25 @@ printf "\n${purple}  ▸ ${white}BALANCE : ${yellow}$(curl -s --user "$pAuth:$pS
 ${purple}  ▸ ${white}SEND TO ${purple}$(cat List/Send/$pList | wc -l)${white} NUMBERS\n
   ==================================== ${white}$(date +"%H:%M:%S") ====================================\n"
 
-## RANDOM NUMBER FITURE ##
-rand_from_num=$(curl -s --user "$pAuth:$pSecret" "https://api.plivo.com/v1/Account/$pAuth/Number/" -s | jq '.objects[] | .number' | shuf | head -n 1 | tr -d '"')
-
-## LETTER ##
-## $(((RND=RANDOM<<15|RANDOM)) ; echo ${RND: -6}) ITS A 6 DIGIT RANDOM NUMBER
-pLetter="<#> PayPal: Your security code is ($(((RND=RANDOM<<15|RANDOM)) ; echo ${RND: -6})). This code will expire in 10 minutes. If this isn't you, update your information at https://manage-pay.pa.l.webcgi-bin.com/r/6LWfoMw"
-
 function pLoopSend() {
 	pSendMain="${1}"
-    ## CHECK BALANCE ##
-    pBalance=$(curl -s --user "$pAuth:$pSecret" "https://api.plivo.com/v1/Account/$pAuth/" | jq ".cash_credits" | tr -d '"')
 
-    if [[ $(curl -s --user "$pAuth:$pSecret" -H "Content-Type: application/json" -d "{\"src\":\"+$rand_from_num\",\"dst\":\"$pSendMain\",\"text\":\"$(echo $pLetter)\",\"url\":\"http://webhook.site/c7a0b423-8d1f-46fe-9a81-1dfa8254bdaf\"}" "https://api.plivo.com/v1/Account/$pAuth/Message/" | jq '.message' | tr -d '"') =~ "message(s) queued" ]]; then
-		printf "  ${white}[$(cat List/Send/$pList | grep -n "$pSendMain" | awk -F ":" '{print $1}')/${purple}$(cat List/Send/$pList | wc -l)${white}] [${yellow}$(date +"%H:%M:%S")${white}]-[${green}DONE${white}]---->>[${purple}Balance ${white}: ${yellow}$pBalance${white}]---->>[SEND TO : ${green}$pSendMain${white}]\n"
+  ## RANDOM NUMBER FITURE ##
+  rand_from_num=$(curl -s --user "$pAuth:$pSecret" "https://api.plivo.com/v1/Account/$pAuth/Number/" -s | jq '.objects[] | .number' | shuf | head -n 1 | tr -d '"')
+
+  ## LETTER ##
+  ## $(((RND=RANDOM<<15|RANDOM)) ; echo ${RND: -6}) >> ITS A 6 DIGIT RANDOM NUMBER
+  ## $(date +"%A, %d %B %Y") >> SHOWING DATE e.g. Wednesday, 03 March 2021
+  tLetter="<#> Company: Your OTP code is ($(((RND=RANDOM<<15|RANDOM)) ; echo ${RND: -6})). This code will expire in 10 minutes - $(date +"%A, %d %B %Y")."
+
+  ## CHECK BALANCE ##
+  pBalance=$(curl -s --user "$pAuth:$pSecret" "https://api.plivo.com/v1/Account/$pAuth/" | jq ".cash_credits" | tr -d '"')
+  pSendRequest=$(curl -s --user "$pAuth:$pSecret" -H "Content-Type: application/json" -d "{\"src\":\"+$rand_from_num\",\"dst\":\"$pSendMain\",\"text\":\"$pLetter\",\"url\":\"http://webhook.site/c7a0b423-8d1f-46fe-9a81-1dfa8254bdaf\"}" "https://api.plivo.com/v1/Account/$pAuth/Message/" | jq '.message' | tr -d '"')
+
+    if [[ $pSendRequest =~ "message(s) queued" ]]; then
+		printf "  ${white}[$(cat List/Send/$pList | grep -n "$pSendMain" | awk -F ":" '{print $1}')/${purple}$(cat List/Send/$pList | wc -l)${white}] [${yellow}$(date +"%H:%M:%S")${white}]-[${green}DONE${white}]-[FROM : ${green}$rand_from_num${white}]--->>[${purple}BALANCE ${white}: ${yellow}$pBalance${white}]---->>[SEND TO : ${green}$pSendMain${white}]\n"
 	else
-		printf "  ${white}[$(cat List/Send/$pList | grep -n "$pSendMain" | awk -F ":" '{print $1}')/${purple}$(cat List/Send/$pList | wc -l)${white}] [${yellow}$(date +"%H:%M:%S")${white}]-[${red}FAIL${white}]---->>[${purple}Error ${white}: ${red}$(curl -s --user "$pAuth:$pSecret" -H "Content-Type: application/json" -d "{\"src\":\"+$rand_from_num\",\"dst\":\"$pSendMain\",\"text\":\"$(cat $letter_plivo)\",\"url\":\"http://webhook.site/c7a0b423-8d1f-46fe-9a81-1dfa8254bdaf\"}" "https://api.plivo.com/v1/Account/$pAuth/Message/" | jq '.error' | tr -d '"')${white}]---->>[SEND TO : ${red}$pSendMain${white}]\n"
+		printf "  ${white}[$(cat List/Send/$pList | grep -n "$pSendMain" | awk -F ":" '{print $1}')/${purple}$(cat List/Send/$pList | wc -l)${white}] [${yellow}$(date +"%H:%M:%S")${white}]-[${red}FAIL${white}]-[FROM : ${red}$rand_from_num${white}]--->>[${purple}ERROR ${white}: ${red}$pSendRequest${white}]---->>[SEND TO : ${red}$pSendMain${white}]\n"
 	fi
 }
 
@@ -70,4 +73,4 @@ for pSendMain in $(cat List/Send/$pList); do
     pLoopSend "$pSendMain" &
 done
 wait
-printf "  ==================================== ${white} FINISH  ====================================\n\n"
+printf "  ==================================== ${white} FINISH${nc}  ====================================\n\n"
