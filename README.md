@@ -9,7 +9,7 @@
 - Yes, you're probably correct. Feel free to "Not use it" and there is a pull button to "Make it better". 
 
 ## Installation
-*Sudomy* is currently extended with the following tools. Instructions on how to install & use the application are linked below.
+*HBSender* is currently extended with the following tools. Instructions on how to install & use the application are linked below.
 
 ### To Download HBSender From Github
 ```bash
@@ -42,14 +42,21 @@ And you can setting the messages Letter at **module/nexmo.send** or **module/pli
 ```bash
 ## NEXMO
 ## LETTER ##
-## $(((RND=RANDOM<<15|RANDOM)) ; echo ${RND: -6}) ITS A 6 DIGIT RANDOM NUMBER
-
-nLetter="<#> Company: Your OTP code is ($(((RND=RANDOM<<15|RANDOM)) ; echo ${RND: -6}))."
+## $(((RND=RANDOM<<15|RANDOM)) ; echo ${RND: -6}) >> ITS A 6 DIGIT RANDOM NUMBER
+## $(date +"%A, %d %B %Y") >> SHOWING DATE e.g. Wednesday, 03 March 2021
+nLetter="<#> Company: Your OTP code is ($(((RND=RANDOM<<15|RANDOM)) ; echo ${RND: -6})). This code will expire in 10 minutes - $(date +"%A, %d %B %Y")."
 
 ## PLIVO
 ## LETTER ##
-## $(((RND=RANDOM<<15|RANDOM)) ; echo ${RND: -6}) ITS A 6 DIGIT RANDOM NUMBER
-pLetter="<#> Company: Your OTP code is ($(((RND=RANDOM<<15|RANDOM)) ; echo ${RND: -6}))."
+## $(((RND=RANDOM<<15|RANDOM)) ; echo ${RND: -6}) >> ITS A 6 DIGIT RANDOM NUMBER
+## $(date +"%A, %d %B %Y") >> SHOWING DATE e.g. Wednesday, 03 March 2021
+pLetter="<#> Company: Your OTP code is ($(((RND=RANDOM<<15|RANDOM)) ; echo ${RND: -6})). This code will expire in 10 minutes - $(date +"%A, %d %B %Y")."
+
+##TWILLIO##
+## LETTER ##
+## $(((RND=RANDOM<<15|RANDOM)) ; echo ${RND: -6}) >> ITS A 6 DIGIT RANDOM NUMBER
+## $(date +"%A, %d %B %Y") >> SHOWING DATE e.g. Wednesday, 03 March 2021
+tLetter="<#> Company: Your OTP code is ($(((RND=RANDOM<<15|RANDOM)) ; echo ${RND: -6})). This code will expire in 10 minutes - $(date +"%A, %d %B %Y")."
 ```
 ## Usage
 ```text
@@ -64,7 +71,7 @@ pLetter="<#> Company: Your OTP code is ($(((RND=RANDOM<<15|RANDOM)) ; echo ${RND
 
   ▸ [1] NEXMO SENDER
   ▸ [2] PLIVO SENDER
-  ▸ [3] TWILLIO SENDER (SOON)
+  ▸ [3] TWILLIO SENDER
 
   ▸ OPTIONS : 
 ```
