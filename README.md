@@ -18,27 +18,30 @@ git clone --recursive https://github.com/KeepWannabe/HBSender.git
 ```
 
 ## Dependencies
-*Sudomy* requires [jq](https://stedolan.github.io/jq/download/) to run and parse. Information on how to download and install jq can be accessed [here](https://stedolan.github.io/jq/download/)
+*HBsender* requires [jq](https://stedolan.github.io/jq/download/) to run and parse. Information on how to download and install jq can be accessed [here](https://stedolan.github.io/jq/download/)
 
 ```bash
 # Linux
 apt-get update
 apt-get install jq curl dos2unix
-sed -i 's/\r$//' HBSender module/nexmo.send module/plivo.send
+sed -i 's/\r$//' HBSender module/*.send
 
 ```
 ### Post Installation
-API Key is needed before querying on third-party sites, such as ```Plivo and Nexmo```.
+API Key is needed before querying on third-party sites, such as ```Plivo, Nexmo and Twillio```.
 - The API key setting can be done in **Account** folder.
-- **The plivo are sending with random number (based on your numbers at plivo) and shuffling**
+- **The plivo and twillio are sending with random number (based on your owned numbers at plivo/twillio) and shuffling**
 ```json
 ## NEXMO
 {"apikey":"YOUR_APIKEY","apisecret":"YOUR_SECRETKEY","fromnumber":1234567890}
 
 ## PLIVO
 {"authid":"YOUR_APIKEY","secretid":"YOUR_SECRETKEY"}
+
+## TWILLIO
+{"accountsid":"ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX","token":"YOUR_TOKEN"}
 ```
-And you can setting the messages Letter at **module/nexmo.send** or **module/plivo.send**
+And you can setting the messages Letter at **module/nexmo.send**, **module/plivo.send** and **module/twillio.send**
 ```bash
 ## NEXMO
 ## LETTER ##
