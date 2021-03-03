@@ -27,16 +27,19 @@ printf "${blue}
 
 ${purple}  ▸ ${white}[${purple}1${white}] ${green}NEXMO SENDER
 ${purple}  ▸ ${white}[${purple}2${white}] ${green}PLIVO SENDER
-${purple}  ▸ ${white}[${purple}3${white}] ${green}TWILLIO SENDER ${white}(${yellow}SOON${white})
+${purple}  ▸ ${white}[${purple}3${white}] ${green}TWILLIO SENDER
 "
 printf "${purple}  ▸ ${white}OPTIONS : "
 read options_choose
 if [[ $options_choose =~ "1" ]]; then
+sed -i 's/\r//' module/nexmo.send
 bash module/nexmo.send
 elif [[ $options_choose =~ "2" ]]; then
+sed -i 's/\r//' module/plivo.send
 bash module/plivo.send
 elif [[ $options_choose =~ "3" ]]; then
-printf "[!] ${yellow} FITURE COMING SOON${white}"
+sed -i 's/\r//' module/twillio.send
+bash module/twillio.send
 else
 printf "${red} WRONG INPUT ?\n"
 exit
