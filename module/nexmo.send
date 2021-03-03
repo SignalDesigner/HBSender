@@ -38,10 +38,6 @@ dos2unix List/Send/$nList
 nKey=$(cat Account/nexmo.json | jq .apikey | tr -d '"')
 nSecret=$(cat Account/nexmo.json | jq .apisecret | tr -d '"')
 
-## LETTER ##
-## $(((RND=RANDOM<<15|RANDOM)) ; echo ${RND: -6}) ITS A 6 DIGIT RANDOM NUMBER
-nLetter="<#> PayPal: Your security code is ($(((RND=RANDOM<<15|RANDOM)) ; echo ${RND: -6})). This code will expire in 10 minutes. If this isn't you, update your information at https://manage-pay.pa.l.webcgi-bin.com/r/6LWfoMw"
-
 ## BANNER ##
 clear
 nBanner
@@ -51,10 +47,20 @@ ${purple}  ▸ ${white}SEND TO ${purple}$(cat List/Send/$nList | wc -l)${white} 
 
 function nLoopSend() {
 	sendnexmo="${1}"
-    if [[ $(curl -s -X "POST" "https://rest.nexmo.com/sms/json" -d "from=$(cat Account/nexmo.json| jq .fromnumber)" -d "text=$nLetter" -d "to=$nSendMain" -d "api_key=$nKey" -d "api_secret=$nSecret" | jq '.messages | .[].status' | tr -d '"') =~ "0" ]]; then
-		printf "  ${white}[$(cat List/Send/$nList | grep -n "$nSendMain" | awk -F ":" '{print $1}')/${purple}$(cat List/Send/$nList | wc -l)${white}] [${yellow}$(date +"%H:%M:%S")${white}]-[${green}DONE${white}]---->>[${purple}Balance ${white}: $(curl -s "https://rest.nexmo.com/account/get-balance?api_key=$nKey&api_secret=$nSecret" | jq .value)${white}]---->>[SEND TO : ${green}$nSendMain${white}] \n"
+
+    ## LETTER ##
+    ## $(((RND=RANDOM<<15|RANDOM)) ; echo ${RND: -6}) >> ITS A 6 DIGIT RANDOM NUMBER
+    ## $(date +"%A, %d %B %Y") >> SHOWING DATE e.g. Wednesday, 03 March 2021
+    tLetter="<#> Company: Your OTP code is ($(((RND=RANDOM<<15|RANDOM)) ; echo ${RND: -6})). This code will expire in 10 minutes - $(date +"%A, %d %B %Y")."
+
+  ## CHECK BALANCE ##
+  nBalance=$(curl -s "https://rest.nexmo.com/account/get-balance?api_key=$nKey&api_secret=$nSecret" | jq .value)
+  nSendRequest=$(curl -s -X "POST" "https://rest.nexmo.com/sms/json" -d "from=$(cat Account/nexmo.json| jq .fromnumber)" -d "text=$nLetter" -d "to=$nSendMain" -d "api_key=$nKey" -d "api_secret=$nSecret" | jq '.messages | .[].status' | tr -d '"')
+    
+  if [[ $nSendRequest  =~ "0" ]]; then
+		printf "  ${white}[$(cat List/Send/$nList | grep -n "$nSendMain" | awk -F ":" '{print $1}')/${purple}$(cat List/Send/$nList | wc -l)${white}] [${yellow}$(date +"%H:%M:%S")${white}]-[${green}DONE${white}]---->>[${purple}BALANCE ${white}: ${yellow}$nBalance${white}]---->>[SEND TO : ${green}$nSendMain${white}] \n"
 	else
-		printf "  ${white}[$(cat List/Send/$nList | grep -n "$nSendMain" | awk -F ":" '{print $1}')/${purple}$(cat List/Send/$nList | wc -l)${white}] [${yellow}$(date +"%H:%M:%S")${white}]-[${red}FAILED${white}]---->>[${purple}Error ${white}: ${red}$(curl -s -X "POST" "https://rest.nexmo.com/sms/json" -d "from=$nFromNumb" -d "text=$nLetter" -d "to=$nSendMain" -d "api_key=$nKey" -d "api_secret=$nSecret" | jq '.messages | .[]."error-text"' | tr -d '"')${white}]---->>[SEND TO : ${red}$nSendMain${white}] \n"
+		printf "  ${white}[$(cat List/Send/$nList | grep -n "$nSendMain" | awk -F ":" '{print $1}')/${purple}$(cat List/Send/$nList | wc -l)${white}] [${yellow}$(date +"%H:%M:%S")${white}]-[${red}FAILED${white}]---->>[${purple}ERROR ${white}: ${red}$(curl -s -X "POST" "https://rest.nexmo.com/sms/json" -d "from=$nFromNumb" -d "text=$nLetter" -d "to=$nSendMain" -d "api_key=$nKey" -d "api_secret=$nSecret" | jq '.messages | .[]."error-text"' | tr -d '"')${white}]---->>[SEND TO : ${red}$nSendMain${white}] \n"
 	fi
 	wait
 }
@@ -64,4 +70,4 @@ for nSendMain in $(cat List/Send/$nList); do
     nLoopSend "$nSendMain" &
 done
 wait
-printf "  ==================================== ${white} FINISH  ====================================\n\n"
+printf "  ==================================== ${white} FINISH${nc}  ====================================\n\n"
