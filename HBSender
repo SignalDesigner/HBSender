@@ -32,13 +32,10 @@ ${purple}  ▸ ${white}[${purple}3${white}] ${green}TWILLIO SENDER
 printf "${purple}  ▸ ${white}OPTIONS : "
 read options_choose
 if [[ $options_choose =~ "1" ]]; then
-sed -i 's/\r//' module/nexmo.send
 bash module/nexmo.send
 elif [[ $options_choose =~ "2" ]]; then
-sed -i 's/\r//' module/plivo.send
 bash module/plivo.send
 elif [[ $options_choose =~ "3" ]]; then
-sed -i 's/\r//' module/twillio.send
 bash module/twillio.send
 else
 printf "${red} WRONG INPUT ?\n"
