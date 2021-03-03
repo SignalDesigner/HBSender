@@ -1,0 +1,76 @@
+#!/bin/bash
+##############################################################
+##                    COLORING YOUR SHELL                   ##
+##############################################################
+white="\033[1;37m"                                          ##
+grey="\033[0;37m"                                           ##
+purple="\033[0;35m"                                         ##
+red="\e[91m"                                                ##
+green="\e[92m"                                              ##
+yellow="\e[93m"                                             ##
+purple="\033[0;35m"                                         ##
+cafe="\033[0;33m"                                           ##
+fiuscha="\033[0;35m"                                        ##
+blue="\033[0;36m"                                           ##
+darkgrey="\e[100m"                                          ##
+nc="\e[0m"                                                  ##
+##############################################################
+clear
+nBanner() {
+printf "${blue}
+      __  ______ _____                __         
+     / / / / __ ) ___/___  ____  ____/ /__  _____
+    / /_/ / __  \__ \/ _ \/ __ \/ __  / _ \/ ___/
+   / __  / /_/ /__/ /  __/ / / / /_/ /  __/ /    
+  /_/ /_/_____/____/\___/_/ /_/\__,_/\___/_/${white}     
+                                               
+  [${purple}HYPEBROTHER SENDER ${green}2K21${white} - MODE : ${green}TWILLIO${white}]
+"
+}
+nBanner
+printf "\n${purple}  ▸ ${white}LIST         : "
+read tList
+
+## FORMATING LIST ##
+dos2unix List/Send/$tList -q
+
+## NEXMO ACCOUNT ##
+tSid=$(cat Account/twillio.json | jq .accountsid | tr -d '"')
+tToken=$(cat Account/twillio.json | jq .token | tr -d '"')
+
+## BANNER ##
+clear
+nBanner
+printf "\n${purple}  ▸ ${white}BALANCE : ${yellow}$(curl -s -G "https://api.twilio.com/2010-04-01/Accounts/$tSid/Balance.json" -u "$tSid:$tToken" | jq .balance | tr -d '"')
+${purple}  ▸ ${white}SEND TO ${purple}$(cat List/Send/$tList | wc -l)${white} NUMBERS\n
+  ============================================== ${white}$(date +"%H:%M:%S") ==============================================\n"
+
+function tLoopSend() {
+	tSendMain="${1}"
+
+    ## RANDOM NUMBER FITURE ##
+    rand_from_num=$(curl -s "https://api.twilio.com/2010-04-01/Accounts/$tSid/IncomingPhoneNumbers.json?PageSize=20" -u $tSid:$tToken | jq '.incoming_phone_numbers[] | .phone_number' | shuf | head -n 1 | tr -d '"')
+
+    ## LETTER ##
+    ## $(((RND=RANDOM<<15|RANDOM)) ; echo ${RND: -6}) >> ITS A 6 DIGIT RANDOM NUMBER
+    ## $(date +"%A, %d %B %Y") >> SHOWING DATE e.g. Wednesday, 03 March 2021
+    tLetter="<#> Company: Your OTP code is ($(((RND=RANDOM<<15|RANDOM)) ; echo ${RND: -6})). This code will expire in 10 minutes - $(date +"%A, %d %B %Y")."
+
+    ## CHECK BALANCE ##
+    tBalance=$(curl -s "https://api.twilio.com/2010-04-01/Accounts/$tSid/Balance.json" -u "$tSid:$tToken" | jq .balance | tr -d '"')
+    tSendRequest=$(curl -s -XPOST "https://api.twilio.com/2010-04-01/Accounts/$tSid/Messages.json" --data-urlencode "Body=$tLetter" --data-urlencode "From=$rand_from_num" --data-urlencode "To=$tSendMain" -u "$tSid:$tToken" | jq .status | tr -d '"')
+
+    if [[ $tSendRequest =~ "queued" ]]; then
+		printf "  ${white}[$(cat List/Send/$tList | grep -n "$tSendMain" | awk -F ":" '{print $1}')/${purple}$(cat List/Send/$tList | wc -l)${white}] [${yellow}$(date +"%H:%M:%S")${white}]-[${green}DONE${white}]-[FROM : ${green}$rand_from_num${white}]--->>[${purple}BALANCE ${white}: $tBalance${white}]---->>[SEND TO : ${green}$tSendMain${white}] \n"
+	else
+		printf "  ${white}[$(cat List/Send/$tList | grep -n "$tSendMain" | awk -F ":" '{print $1}')/${purple}$(cat List/Send/$tList | wc -l)${white}] [${yellow}$(date +"%H:%M:%S")${white}]-[${red}FAILED${white}]-[FROM : ${red}$rand_from_num${white}]--->>[${purple}ERROR ${white}: ${red}$(curl -s -XPOST "https://api.twilio.com/2010-04-01/Accounts/$tSid/Messages.json" --data-urlencode "Body=$tLetter" --data-urlencode "From=$rand_from_num" --data-urlencode "To=$tSendMain" -u "$tSid:$tToken" | jq .message | tr -d '"')${white}]---->>[SEND TO : ${red}$tSendMain${white}] \n"
+	fi
+	wait
+}
+
+for tSendMain in $(cat List/Send/$tList); do
+    ((cthread=cthread%1)); ((cthread++==0)) && wait
+    tLoopSend "$tSendMain" &
+done
+wait
+printf "  ============================================== ${white} FINISH${nc}  ==============================================\n\n"
