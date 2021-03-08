@@ -37,7 +37,7 @@ dos2unix List/Send/$tList -q
 ## NEXMO ACCOUNT ##
 tSid=$(cat Account/twillio.json | jq .accountsid | tr -d '"')
 tToken=$(cat Account/twillio.json | jq .token | tr -d '"')
-
+MULTIPROC=50
 ## BANNER ##
 clear
 nBanner
@@ -69,7 +69,7 @@ function tLoopSend() {
 }
 
 for tSendMain in $(cat List/Send/$tList); do
-    ((cthread=cthread%1)); ((cthread++==0)) && wait
+    ((cproc=cproc%MULTIPROC)); ((cproc++==0)) && wait
     tLoopSend "$tSendMain" &
 done
 wait
